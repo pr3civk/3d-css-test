@@ -49,83 +49,143 @@ const variants = {
   }
 }
 function App() {
-  const [isLeaving, setIsLeaving] = useState(false);
-  const [opacity, setOpacity] = useState(1);
-  const ref = useRef<HTMLDivElement>(null);
-
+  const [isLeaving, setIsLeaving] = useState(false)
+  const [opacity, setOpacity] = useState(1)
+  const ref = useRef<HTMLDivElement>(null)
 
   useEffect(() => {
-    if (!ref.current || opacity === 0) return;
+    if (!ref.current || opacity === 0) return
     const observer = new MutationObserver((mutations) => {
       mutations.forEach((mutation) => {
         if (mutation.attributeName === 'style') {
-          const currentOpacity = window.getComputedStyle(ref.current!).opacity;
-          setOpacity(Number(currentOpacity));
+          const currentOpacity = window.getComputedStyle(ref.current!).opacity
+          setOpacity(Number(currentOpacity))
         }
-      });
-    });
-    
-    observer.observe(ref.current, { attributes: true });
-    return () => observer.disconnect();
-  }, [opacity]);
+      })
+    })
 
-  
-  if(opacity === 0) {
-    return <div>
-      <h1>Leaving</h1>
-    </div>
+    observer.observe(ref.current, { attributes: true })
+    return () => observer.disconnect()
+  }, [opacity])
+
+  if (opacity === 0) {
+    return (
+      <div>
+        <h1>Leaving</h1>
+      </div>
+    )
   }
-
 
   return (
     <div className="fixed inset-0 bg-black flex items-center justify-center overflow-hidden">
+      <MovieAnimation />
       <div className="relative w-screen h-screen perspective-1000 -rotate-x-[30deg]  transform-style-3d">
-      <motion.div 
+        <motion.div
           className="absolute w-full h-full transform-style-3d"
-          variants={variants}  
+          variants={variants}
           initial="initial"
-          animate={isLeaving ? "exit" : "animate"}
+          animate={isLeaving ? 'exit' : 'animate'}
         >
           {logos.map((Logo, index) => {
-            const angle = (index / logos.length) * 360;
+            const angle = (index / logos.length) * 360
             return (
               <motion.div
                 ref={ref}
-                initial={{opacity: 1}}
-                animate={isLeaving && {opacity: [1,0]}}
+                initial={{ opacity: 1 }}
+                animate={isLeaving && { opacity: [1, 0] }}
                 transition={{
                   duration: 1.25,
-                  ease: "easeInOut"
+                  ease: 'easeInOut',
                 }}
                 key={index}
                 className="absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 backdrop-blur-2xl"
-              style={{
-                transform: `
+                style={{
+                  transform: `
                   rotateY(${angle}deg) 
                   translateX(${window.innerWidth > 1600 ? 800 : 600}px)
                   translateY(-150px) 
                 `,
-              }}
-            >
-            <div
-                className={`w-32 h-32 rounded-full p-6 origin-center
+                }}
+              >
+                <div
+                  className={`w-32 h-32 rounded-full p-6 origin-center
                            hover:scale-110 transition-all duration-300
                            flex items-center justify-center 
                            backdrop-blur-sm bg-gradient-to-br from-white/10 to-transparent
                            shadow-lg shadow-white/5 transform-style-3d 
                            opacity-100 hover:bg-white group
                            `}
-              >
-                <Logo.Icon className={`w-20 h-20 group-hover:text-black transition-all duration-300 ${Logo.color}`} />
-              </div>
-            </motion.div>
-            );
+                >
+                  <Logo.Icon className={`w-20 h-20 group-hover:text-black transition-all duration-300 ${Logo.color}`} />
+                </div>
+              </motion.div>
+            )
           })}
         </motion.div>
       </div>
-      <button className='cursor-pointer absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 backdrop-blur-sm px-4 py-2 rounded-full z-[1000] bg-red-300' onClick={() => setIsLeaving(true)}>Leave</button>
+      <button
+        className="cursor-pointer absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 backdrop-blur-sm px-4 py-2 rounded-full z-20 bg-red-300"
+        onClick={() => setIsLeaving(true)}
+      >
+        Leave
+      </button>
     </div>
-  );
+  )
+}
+const MovieAnimation = () => {
+  const videoRef = useRef<HTMLVideoElement>(null)
+  const [isFinished, setIsFinished] = useState(false)
+
+  useEffect(() => {
+    const handleUserInteraction = () => {
+      if (videoRef.current) {
+        videoRef.current.muted = false
+        videoRef.current.play().catch((err) => {
+          console.error('Nie udało się odtworzyć z dźwiękiem:', err)
+        })
+        document.removeEventListener('click', handleUserInteraction)
+      }
+    }
+    document.addEventListener('click', handleUserInteraction)
+    if (videoRef.current) {
+      videoRef.current.muted = true
+      videoRef.current.play().catch((err) => {
+        console.error(err)
+      })
+    }
+
+    videoRef.current?.addEventListener('ended', () => {
+      setIsFinished(true)
+    })
+
+    return () => {
+      document.removeEventListener('click', handleUserInteraction)
+    }
+  }, [])
+
+  if (isFinished) {
+    return
+  }
+
+  return (
+    <div className="fixed inset-0 bg-black flex items-center justify-center overflow-hidden z-40">
+      <video
+        ref={videoRef}
+        autoPlay
+        playsInline
+        muted={false}
+        preload="auto"
+        aria-label="Splash video"
+        className="w-full h-full object-cover"
+      >
+        <source
+          src="https://cjn1foix8guknqhi.public.blob.vercel-storage.com/logo-stackr-gDfX4Jlux4pEuMyhJFim2Jh5C6VsXz.mp4"
+          type="video/mp4"
+        />
+        Your browser does not support the video tag.
+      </video>
+    </div>
+  )
 }
 
 export default App;

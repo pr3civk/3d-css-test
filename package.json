@@ -15,6 +15,7 @@
     "motion": "^12.6.3",
     "react": "^19.0.0",
     "react-dom": "^19.0.0",
+    "react-player": "^2.16.0",
     "splash-test": "file:",
     "tailwindcss": "^4.1.2"
   },
